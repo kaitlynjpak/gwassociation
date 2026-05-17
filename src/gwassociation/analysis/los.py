@@ -4,6 +4,8 @@ from astropy.cosmology import FlatLambdaCDM, Planck15
 from astropy import constants
 import astropy.units as u
 
+from ..density import line_of_sight_pdf
+
 # [Your existing code from los.py]
 zinterp = np.linspace(0, 0.5, 5000)
 dz = zinterp[1] - zinterp[0]
@@ -59,14 +61,18 @@ class DistanceOverlap:
         if em_transient.z is None:
             return 1.0  # No distance constraint
         
-        # Get EM luminosity distance with uncertainties
-        dL_em = em_transient.get_luminosity_distance(self.cosmo)
+        # Get EM luminosity distance with uncertainties. Accept both the
+        # Transient dataclass and light-weight objects exposing only ``z``.
+        if hasattr(em_transient, "get_luminosity_distance"):
+            dL_em = em_transient.get_luminosity_distance(self.cosmo)
+        else:
+            dL_em = self.cosmo.luminosity_distance(em_transient.z).to(u.Mpc).value
         
         # Add peculiar velocity uncertainty (~300 km/s typical)
         v_pec = 300  # km/s
         z_pec = v_pec / speed_of_light
         z_total = em_transient.z
-        z_err = em_transient.z_err if em_transient.z_err else 0.01
+        z_err = getattr(em_transient, "z_err", None) or 0.01
         
         # Approximate uncertainty in distance
         dL_em_err = dL_em * np.sqrt((z_err/z_total)**2 + 

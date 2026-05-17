@@ -22,10 +22,11 @@ class TemporalOverlap:
         --------
         I_t: Temporal overlap probability
         '''
-        if em_transient.time is None:
+        event_time = getattr(em_transient, "time", None)
+        if event_time is None:
             return 1.0  # No time constraint
         
-        dt = em_transient.time - gw_event.event_time  # Time delay
+        dt = event_time - gw_event.event_time  # Time delay
         
         if model == 'kilonova':
             # Kilonova light curve model (simplified)

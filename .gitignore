@@ -21,3 +21,11 @@ env/
 # OS/editor files
 .DS_Store
 .ipynb_checkpoints/
+
+# Generated analysis artifacts
+*_output/
+gw_analysis_output/
+test_output/
+test_plots/
+*.ipynb
+*.png

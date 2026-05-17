@@ -35,17 +35,13 @@ def _normalize_candidate_info(info: Dict[str, Any]) -> Dict[str, Any]:
         out["dec"] = float(np.rad2deg(out.pop("dec_rad")))
         return out
 
-    # SkyCoord
+    # SkyCoord-like object
     if "coord" in out:
-        try:
-            from astropy.coordinates import SkyCoord
-            c = out.pop("coord")
-            if isinstance(c, SkyCoord):
-                out["ra"] = float(c.ra.deg)
-                out["dec"] = float(c.dec.deg)
-                return out
-        except Exception:
-            pass
+        c = out.pop("coord")
+        if hasattr(c, "ra") and hasattr(c, "dec"):
+            out["ra"] = float(c.ra.deg)
+            out["dec"] = float(c.dec.deg)
+            return out
 
     raise ValueError(
         "Candidate is missing required sky coordinates. "

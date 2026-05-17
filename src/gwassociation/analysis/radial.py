@@ -30,8 +30,8 @@ class RadialOverlap:
         if secondary_event.skymap is None:
             secondary_event.load_skymap()
 
-        prob_primary = self._normalize(primary_event.skymap)
-        prob_secondary = self._normalize(secondary_event.skymap)
+        prob_primary = self._normalize(self._event_prob(primary_event))
+        prob_secondary = self._normalize(self._event_prob(secondary_event))
 
         joint = prob_primary * prob_secondary
         joint_sum = np.sum(joint)
@@ -57,6 +57,14 @@ class RadialOverlap:
 
         radial_factor = los_overlap / prior
         return float(np.sum(weights * radial_factor))
+
+    @staticmethod
+    def _event_prob(event):
+        if hasattr(event, "prob") and event.prob is not None:
+            return event.prob
+        if isinstance(getattr(event, "skymap", None), dict):
+            return event.skymap.get("prob", event.skymap.get("data"))
+        return event.skymap
 
     @staticmethod
     def _normalize(probabilities):

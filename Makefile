@@ -26,13 +26,13 @@ install-dev:
 	pip install -e ".[dev]"
 
 test:
-	python test_gwassociation.py
+	pytest -q tests
 
 test-quick:
-	python test_gwassociation.py --quick
+	pytest -q tests/test_prior_dl2.py tests/test_dual_skymap_overlap.py
 
 test-minimal:
-	python test_gwassociation.py --minimal
+	pytest -q tests/test_prior_dl2.py
 
 test-coverage:
 	pytest --cov=gwassociation tests/
@@ -41,7 +41,7 @@ clean:
 	rm -rf build dist *.egg-info src/*.egg-info
 	rm -rf __pycache__ */__pycache__ */*/__pycache__
 	rm -rf .pytest_cache .coverage htmlcov
-	rm -rf test_data test_plots test_output
+	rm -rf test_plots test_output gw_analysis_output
 	find . -name "*.pyc" -delete
 	find . -name "*.pyo" -delete
 
@@ -53,5 +53,4 @@ lint:
 
 docs:
 	@echo "Generating documentation..."
-	PYTHONPATH=src python -m pydoc -w gwassociation
-	@echo "Documentation generated as HTML files"
+	$(MAKE) -C docs html

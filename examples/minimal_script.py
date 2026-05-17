@@ -1,48 +1,46 @@
-# examples/minimal_script.py  — REAL calculation (3D FITS path)
-import numpy as np
-from gwassociation.ingest import load_gw_3d_fits, load_transient
-from gwassociation.density import GWPosteriorDensity
-from gwassociation.fov import fullsky_prior, chime_fov_prior
-from gwassociation.stats import joint_overlap_I3D, distance_overlap_ID, distance_overlap_ID_lensed, posterior_odds
-from gwassociation.plots import plot_los_distance, render_odds_table
+"""Minimal gwassociation API example.
 
-# --- EDIT THESE ---
-GW_3D = "Bilby.offline1.multiorder.fits.gz"  # your file
-EM_RA, EM_DEC = 255.72, 21.52
-EM_TIME = 58630.5
-EM_Z, EM_SIGMA_Z = 0.03136, 0.0005
-R_EM_PER_DAY = 1.6
-DELTA_T_HOURS = 26.0
-USE_LENSING = False
-# ------------------
+Run from the repository root with a FITS sky map available locally, e.g.::
 
-# Build GW density from 3D FITS cube (p(D,Ω))
-skymap = load_gw_3d_fits(GW_3D)          # NOTE: MVP loader expects DIST_MID/PROB HDUs
-gw = GWPosteriorDensity.from_3d_fits(skymap)
+    python examples/minimal_script.py fits_files/S190425z_bayestar.fits.gz,0
+"""
+from __future__ import annotations
 
-# EM transient
-em = load_transient(EM_RA, EM_DEC, t_em=EM_TIME, z=EM_Z, sigma_z=EM_SIGMA_Z)
+import argparse
+import sys
+from pathlib import Path
 
-prior_full = fullsky_prior(gw.nside)
-prior_fov  = chime_fov_prior(gw.nside, ra_center=np.deg2rad(EM_RA), width_hours=5.0)
+# Allow running directly from a source checkout without installing first.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-I3_full = joint_overlap_I3D(gw, em, prior_full, em.DL_grid)
-I3_fov  = joint_overlap_I3D(gw, em, prior_fov,  em.DL_grid)
+from gwassociation import Association
 
-# LOS from the 3D map
-pGW_LOS = gw.pdf_LOS(em.DL_grid, em.ra, em.dec)
-dDL = float(np.mean(np.diff(em.DL_grid)))
-ID = (distance_overlap_ID_lensed(pGW_LOS, em.p_DL, dDL, em.DL_grid)
-      if USE_LENSING else
-      distance_overlap_ID(pGW_LOS, em.p_DL, dDL))
 
-O3_full = posterior_odds(I3_full, R_EM_PER_DAY, DELTA_T_HOURS)
-O3_fov  = posterior_odds(I3_fov,  R_EM_PER_DAY, DELTA_T_HOURS)
-O1D     = posterior_odds(ID,      R_EM_PER_DAY, DELTA_T_HOURS)
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Run a minimal GW-EM association calculation.")
+    parser.add_argument("gw_file", help="Path to a 2D or 3D GW sky-map FITS file.")
+    parser.add_argument("--ra", type=float, default=120.5, help="Transient RA in degrees.")
+    parser.add_argument("--dec", type=float, default=-30.2, help="Transient Dec in degrees.")
+    parser.add_argument("--z", type=float, default=0.05, help="Transient redshift.")
+    parser.add_argument("--time", type=float, default=1234567890.0, help="Transient event time.")
+    parser.add_argument("--gw-time", type=float, default=1234567880.0, help="GW trigger time.")
+    args = parser.parse_args()
 
-print("\n=== gwassociation MVP results (real overlaps) ===")
-render_odds_table([
-    ("I_3D + Full-sky prior", O3_full),
-    ("I_3D + FOV prior",      O3_fov),
-    ("LOS distance only",     O1D),
-])
+    assoc = Association(
+        args.gw_file,
+        {
+            "name": "example_candidate",
+            "ra": args.ra,
+            "dec": args.dec,
+            "z": args.z,
+            "time": args.time,
+            "gw_time": args.gw_time,
+        },
+    )
+    results = assoc.compute_odds()
+    print(f"P(associated): {results['confidence']:.3%}")
+    print(f"Posterior odds: {results['posterior_odds']:.3e}")
+
+
+if __name__ == "__main__":
+    main()

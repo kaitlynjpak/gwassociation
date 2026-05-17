@@ -1,12 +1,35 @@
+"""Spatial overlap calculations for point and map localizations."""
+from __future__ import annotations
+
 import numpy as np
 
 from ..utils import healpix as hp_utils
 
 
+def _prob_array(skymap_or_event) -> np.ndarray:
+    if isinstance(skymap_or_event, dict):
+        return np.asarray(skymap_or_event.get("prob", skymap_or_event.get("data")), dtype=float)
+    if hasattr(skymap_or_event, "prob") and skymap_or_event.prob is not None:
+        return np.asarray(skymap_or_event.prob, dtype=float)
+    if hasattr(skymap_or_event, "skymap"):
+        if isinstance(skymap_or_event.skymap, dict):
+            return np.asarray(skymap_or_event.skymap.get("prob", skymap_or_event.skymap.get("data")), dtype=float)
+        if skymap_or_event.skymap is not None:
+            return np.asarray(skymap_or_event.skymap, dtype=float)
+    return np.asarray(skymap_or_event, dtype=float)
+
+
+def _nside(skymap_or_event, prob: np.ndarray) -> int:
+    if isinstance(skymap_or_event, dict) and skymap_or_event.get("nside") is not None:
+        return int(skymap_or_event["nside"])
+    if hasattr(skymap_or_event, "nside") and skymap_or_event.nside is not None:
+        return int(skymap_or_event.nside)
+    return hp_utils.npix2nside(prob.size)
+
+
 def _as_skymap_dict(skymap_or_dict):
-    if isinstance(skymap_or_dict, dict):
-        return skymap_or_dict
-    return {'data': np.asarray(skymap_or_dict), 'nside': hp_utils.npix2nside(len(skymap_or_dict))}
+    prob = _prob_array(skymap_or_dict)
+    return {"prob": prob, "data": prob, "nside": _nside(skymap_or_dict, prob)}
 
 
 def _normalize_probabilities(prob_array):
@@ -17,96 +40,63 @@ def _normalize_probabilities(prob_array):
     return arr / total
 
 
-def _point_overlap(gw_map, ra, dec, gw_nested=True):
-    theta = np.radians(90 - dec)
-    phi = np.radians(ra)
-    nside = gw_map['nside']
-    data = np.asarray(gw_map['data'], dtype=float)
+def IOmega_point(ra_rad, dec_rad, gw_prob, nside, nest=True):
+    """Point-source sky Bayes factor relative to an isotropic sky prior."""
+    prob = _normalize_probabilities(gw_prob)
+    theta = np.pi / 2 - dec_rad
+    phi = ra_rad
+    ipix = hp_utils.ang2pix(nside, theta, phi, nest=nest)
+    pix_area = hp_utils.nside2pixarea(nside)
+    p_density = prob[ipix] / pix_area
+    sky_prior = 1.0 / (4.0 * np.pi)
+    return float(p_density / sky_prior)
 
-    ipix = hp_utils.ang2pix(nside, theta, phi, nest=gw_nested)
-    norm = data.sum()
-    if norm <= 0:
-        return 0.0
-    probability_mass = data[ipix] / norm
-    npix = data.size
-    return probability_mass * npix
+
+def IOmega_maps(gw_prob, ext_prob, nside):
+    """Map-vs-map sky Bayes factor relative to isotropic sky priors."""
+    gw = _normalize_probabilities(gw_prob)
+    ext = _normalize_probabilities(ext_prob)
+    return float(gw.size * np.sum(gw * ext))
+
+
+def _point_overlap(gw_map, ra, dec, gw_nested=True):
+    return IOmega_point(np.radians(ra), np.radians(dec), gw_map["prob"], gw_map["nside"], nest=gw_nested)
 
 
 def _map_overlap(gw_map, ext_map):
-    if gw_map['nside'] != ext_map['nside']:
+    if gw_map["nside"] != ext_map["nside"]:
         raise ValueError("GW and external skymaps must share the same NSIDE for overlap computation.")
-
-    gw_prob = _normalize_probabilities(gw_map['data'])
-    ext_prob = _normalize_probabilities(ext_map['data'])
-
-    overlap_mass = np.sum(gw_prob * ext_prob)
-    npix = gw_prob.size
-    return npix * overlap_mass
+    return IOmega_maps(gw_map["prob"], ext_map["prob"], gw_map["nside"])
 
 
-def skymap_overlap_integral(gw_skymap, ext_skymap=None,
-                            ra=None, dec=None,
-                            gw_nested=True, ext_nested=True):
-    '''
-    Compute the spatial overlap integral between a GW skymap and either a point source
-    or another skymap.
-    '''
+def skymap_overlap_integral(gw_skymap, ext_skymap=None, ra=None, dec=None, gw_nested=True, ext_nested=True):
+    """Compute spatial overlap against a point source or another sky map."""
     gw_map = _as_skymap_dict(gw_skymap)
-
     if ext_skymap is not None:
-        ext_map = _as_skymap_dict(ext_skymap)
-        return _map_overlap(gw_map, ext_map)
-
+        return _map_overlap(gw_map, _as_skymap_dict(ext_skymap))
     if ra is not None and dec is not None:
         return _point_overlap(gw_map, ra, dec, gw_nested=gw_nested)
-
     raise ValueError("Provide either (ra, dec) for point sources or ext_skymap for map overlap.")
 
+
 class SpatialOverlap:
-    '''Calculate spatial overlap integral I_Ω between GW skymap and EM position'''
-    
+    """Calculate spatial overlap integral I_Ω."""
+
     @staticmethod
     def compute(gw_event, em_transient, search_radius: float = 0.0) -> float:
-        '''
-        Calculate spatial overlap integral I_Ω
-        
-        Parameters:
-        -----------
-        gw_event: GWEvent object with loaded skymap
-        em_transient: Transient object with position
-        search_radius: Error radius in degrees (default 0 for point source)
-        
-        Returns:
-        --------
-        I_omega: Spatial overlap probability
-        '''
-        if gw_event.skymap is None:
+        if getattr(gw_event, "skymap", None) is None and hasattr(gw_event, "load_skymap"):
             gw_event.load_skymap()
-        
-        # Use the existing skymap_overlap_integral function
         return skymap_overlap_integral(
-            {'data': gw_event.skymap, 'nside': gw_event.nside},
+            gw_event,
             ra=em_transient.ra,
             dec=em_transient.dec,
-            gw_nested=True
+            gw_nested=getattr(gw_event, "nest", True),
         )
 
     @staticmethod
     def compute_map_overlap(primary_event, secondary_event) -> float:
-        """
-        Calculate spatial overlap for two full skymaps (skymap-vs-skymap).
-        """
-        if primary_event.skymap is None:
+        if getattr(primary_event, "skymap", None) is None and hasattr(primary_event, "load_skymap"):
             primary_event.load_skymap()
-        if secondary_event.skymap is None:
+        if getattr(secondary_event, "skymap", None) is None and hasattr(secondary_event, "load_skymap"):
             secondary_event.load_skymap()
-
-        primary_map = {'data': primary_event.skymap, 'nside': primary_event.nside}
-        secondary_map = {'data': secondary_event.skymap, 'nside': secondary_event.nside}
-
-        return skymap_overlap_integral(
-            primary_map,
-            ext_skymap=secondary_map,
-            gw_nested=getattr(primary_event, "nest", True),
-            ext_nested=getattr(secondary_event, "nest", True)
-        )
+        return skymap_overlap_integral(primary_event, ext_skymap=secondary_event)
