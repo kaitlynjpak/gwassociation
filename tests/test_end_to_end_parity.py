@@ -1,6 +1,6 @@
 # tests/test_end_to_end_parity.py
 import numpy as np
-from gw_assoc.analysis.odds import compute_posterior_odds
+from gwassociation.analysis.odds import compute_posterior_odds
 
 def test_parity_with_notebook(gwevent, host, notebook):
     """

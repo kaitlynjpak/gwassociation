@@ -9,7 +9,7 @@ from pathlib import Path
 # Make sure the package is in the path
 sys.path.insert(0, 'src')
 
-from gw_assoc import Association
+from gwassociation import Association
 
 def test_with_real_skymap():
     """
@@ -60,7 +60,7 @@ def test_with_real_skymap():
     
     if not Path(skymap_file).exists():
         print("✗ Test skymap not found!")
-        print("  Run 'python test_gw_assoc.py' first to create test data")
+        print("  Run 'python test_gwassociation.py' first to create test data")
         return
     
     print(f"✓ Using test skymap: {skymap_file}")
@@ -156,7 +156,7 @@ def test_with_real_skymap():
         print(f"✓ Skymap saved to: {skymap_file}")
         
         # Summary plot
-        from gw_assoc.plots import plot_association_summary
+        from gwassociation.plots import plot_association_summary
         summary_file = output_dir / "summary.png"
         plot_association_summary(results, str(summary_file))
         print(f"✓ Summary saved to: {summary_file}")
@@ -220,7 +220,7 @@ def test_multiple_transients():
     # Use test skymap
     skymap_file = "test_data/test_skymap.fits"
     if not Path(skymap_file).exists():
-        print("✗ Test skymap not found! Run test_gw_assoc.py first")
+        print("✗ Test skymap not found! Run test_gwassociation.py first")
         return
     
     # Create association

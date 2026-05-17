@@ -1,9 +1,9 @@
-# Makefile for GW-Assoc Framework
+# Makefile for GWAssociation Framework
 
 .PHONY: help install test clean docs
 
 help:
-	@echo "GW-Assoc Framework Makefile"
+	@echo "GWAssociation Framework Makefile"
 	@echo "============================"
 	@echo "Available targets:"
 	@echo "  install      Install the package in development mode"
@@ -26,19 +26,19 @@ install-dev:
 	pip install -e ".[dev]"
 
 test:
-	python test_gw_assoc.py
+	python test_gwassociation.py
 
 test-quick:
-	python test_gw_assoc.py --quick
+	python test_gwassociation.py --quick
 
 test-minimal:
-	python test_gw_assoc.py --minimal
+	python test_gwassociation.py --minimal
 
 test-coverage:
-	pytest --cov=gw_assoc tests/
+	pytest --cov=gwassociation tests/
 
 clean:
-	rm -rf build dist *.egg-info
+	rm -rf build dist *.egg-info src/*.egg-info
 	rm -rf __pycache__ */__pycache__ */*/__pycache__
 	rm -rf .pytest_cache .coverage htmlcov
 	rm -rf test_data test_plots test_output
@@ -46,12 +46,12 @@ clean:
 	find . -name "*.pyo" -delete
 
 format:
-	black gw_assoc/
+	black src/gwassociation/
 
 lint:
-	flake8 gw_assoc/ --max-line-length=100
+	flake8 src/gwassociation/ --max-line-length=100
 
 docs:
 	@echo "Generating documentation..."
-	python -m pydoc -w gw_assoc
+	PYTHONPATH=src python -m pydoc -w gwassociation
 	@echo "Documentation generated as HTML files"

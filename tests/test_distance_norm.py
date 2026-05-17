@@ -1,7 +1,7 @@
 # tests/test_distance_norm.py
 import numpy as np
 from scipy.integrate import quad
-from gw_assoc.analysis.los import line_of_sight_pdf
+from gwassociation.analysis.los import line_of_sight_pdf
 
 def test_los_integrates_to_one(gwevent, tol=5e-2):
     gw = gwevent  # fixture: load one map (or construct a small dummy dict)

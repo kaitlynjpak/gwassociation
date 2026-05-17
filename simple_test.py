@@ -13,7 +13,7 @@ sys.path.insert(0, 'src')
 # Check if test data exists
 if not os.path.exists("test_data/test_skymap.fits"):
     print("\n❌ ERROR: Test data not found!")
-    print("Please run this first: python test_gw_assoc.py")
+    print("Please run this first: python test_gwassociation.py")
     print("This will create the test data needed.\n")
     sys.exit(1)
 
@@ -21,10 +21,10 @@ print("✓ Test data found\n")
 
 # Import the framework
 try:
-    from gw_assoc import Association
+    from gwassociation import Association
     print("✓ Successfully imported Association class\n")
 except ImportError as e:
-    print(f"❌ ERROR: Could not import gw_assoc: {e}")
+    print(f"❌ ERROR: Could not import gwassociation: {e}")
     print("Make sure you're in the right directory")
     sys.exit(1)
 

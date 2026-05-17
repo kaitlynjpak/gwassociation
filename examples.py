@@ -16,7 +16,7 @@ def example_single_transient():
     print("EXAMPLE 1: Single Transient Analysis")
     print("="*60)
     
-    from gw_assoc import Association
+    from gwassociation import Association
     
     # Create association with GW event and transient
     assoc = Association(
@@ -69,7 +69,7 @@ def example_multiple_candidates():
     print("EXAMPLE 2: Ranking Multiple Candidates")
     print("="*60)
     
-    from gw_assoc import Association
+    from gwassociation import Association
     
     # Define multiple candidates
     candidates = [
@@ -150,7 +150,7 @@ def example_different_models():
     print("EXAMPLE 3: Comparing EM Models")
     print("="*60)
     
-    from gw_assoc import Association
+    from gwassociation import Association
     
     # Same transient, different models
     transient_info = {
@@ -257,7 +257,7 @@ def example_followup_workflow():
     print("-" * 40)
     print("""
     # Load skymap and candidates
-    from gw_assoc import Association
+    from gwassociation import Association
     import json
     
     # Read candidate list from observers
@@ -286,10 +286,10 @@ def example_advanced_features():
     print("EXAMPLE 6: Advanced Features")
     print("="*60)
     
-    from gw_assoc import Association
-    from gw_assoc.analysis.los import DistanceOverlap
-    from gw_assoc.density import false_alarm_probability
-    from gw_assoc.fov import tiles_needed, observation_time
+    from gwassociation import Association
+    from gwassociation.analysis.los import DistanceOverlap
+    from gwassociation.density import false_alarm_probability
+    from gwassociation.fov import tiles_needed, observation_time
     
     print("\n1. DISTANCE WITH PECULIAR VELOCITIES")
     print("-" * 40)
@@ -356,12 +356,12 @@ def main():
     
     # Check if we can import the package
     try:
-        import gw_assoc
-        print("✓ GW-Assoc package found\n")
+        import gwassociation
+        print("✓ GWAssociation package found\n")
     except ImportError:
-        print("✗ Cannot import gw_assoc package!")
+        print("✗ Cannot import gwassociation package!")
         print("  Make sure it's in your Python path:")
-        print("  export PYTHONPATH=$PYTHONPATH:/path/to/gw_assoc")
+        print("  export PYTHONPATH=$PYTHONPATH:/path/to/gwassociation")
         sys.exit(1)
     
     # Menu

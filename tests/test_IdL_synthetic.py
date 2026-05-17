@@ -1,8 +1,8 @@
 # tests/test_IdL_synthetic.py
 import numpy as np
 from astropy.cosmology import FlatLambdaCDM
-from gw_assoc.analysis.los import line_of_sight_pdf
-from gw_assoc.stats import prior_dl2, IdL_at_host
+from gwassociation.analysis.los import line_of_sight_pdf
+from gwassociation.stats import prior_dl2, IdL_at_host
 
 def test_IdL_peaks_near_mu():
     mu, sigma = 1000.0, 100.0
