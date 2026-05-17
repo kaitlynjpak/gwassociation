@@ -1,3 +1,5 @@
+"""Sky-map plotting helper for GW localizations and point-like EM candidates."""
+
 import matplotlib.pyplot as plt
 import numpy as np
 

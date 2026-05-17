@@ -1,3 +1,11 @@
+"""Posterior-odds assembly for point-source and skymap coincidences.
+
+The functions in this module combine spatial, distance, radial, and temporal
+overlap terms into a Bayes-factor-style odds summary.  They are intentionally
+thin orchestration helpers; the underlying overlap terms are implemented in the
+specialized modules under :mod:`gwassociation.analysis`.
+"""
+
 import numpy as np
 from typing import Dict, Optional
 from .spatial import SpatialOverlap
@@ -9,9 +17,9 @@ def compute_posterior_odds(gw, transient, **kwargs):
     '''
     Compute posterior odds for GW-EM association
     
-    O_posterior = O_prior × BF
-    where BF = P(data|associated) / P(data|not associated)
-         = I_Ω × I_D_L × I_t / P_chance
+    ``O_posterior = O_prior × BF``, where
+    ``BF = P(data|associated) / P(data|not associated)`` and the implemented
+    approximation is ``BF = I_Ω × I_D_L × I_t / P_chance``.
     '''
     
     # Initialize calculators

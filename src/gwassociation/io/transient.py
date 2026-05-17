@@ -1,3 +1,10 @@
+"""Container objects and convenience methods for electromagnetic transients.
+
+The :class:`Transient` dataclass stores the minimum candidate information used by
+association calculations: sky position, optional redshift, optional timing, and
+optional classification metadata.
+"""
+
 from dataclasses import dataclass
 from typing import Optional
 from astropy.coordinates import SkyCoord
@@ -18,6 +25,7 @@ class Transient:
     name: Optional[str] = None
     
     def __repr__(self):
+        """Return a concise debug representation with sky position and redshift."""
         return f"<Transient {self.name if self.name else ''} ra={self.ra:.3f}, dec={self.dec:.3f}, z={self.z}>"
     
     def get_skycoord(self):

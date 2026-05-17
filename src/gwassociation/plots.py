@@ -1,3 +1,10 @@
+"""High-level Matplotlib summaries for association results.
+
+These plotting helpers build publication-style diagnostic figures from the
+result dictionaries returned by :class:`gwassociation.association.Association`
+and the lower-level odds calculators.
+"""
+
 import matplotlib.pyplot as plt
 import numpy as np
 from .plotting.distributions import plot_distance_posteriors, plot_temporal_distribution
