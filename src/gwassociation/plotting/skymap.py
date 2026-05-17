@@ -12,14 +12,14 @@ def plot_skymap(gw, transient, out_file="skymap.png"):
     try:
         # Check if we have skymap data
         if hasattr(gw, 'skymap') and gw.skymap is not None:
-            skymap_data = gw.skymap
+            skymap_data = gw.skymap.get('prob', gw.skymap.get('data')) if isinstance(gw.skymap, dict) else gw.skymap
         elif hasattr(gw, 'data') and gw.data is not None:
             skymap_data = gw.data
         else:
             # Load if needed
             if hasattr(gw, 'load_skymap'):
                 gw.load_skymap()
-                skymap_data = gw.skymap
+                skymap_data = gw.skymap.get('prob', gw.skymap.get('data')) if isinstance(gw.skymap, dict) else gw.skymap
             else:
                 skymap_data = None
         

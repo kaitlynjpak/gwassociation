@@ -62,6 +62,9 @@ def compute_posterior_odds(gw, transient, **kwargs):
         'I_omega': I_omega,
         'I_dl': I_dl,
         'I_t': I_t,
+        # Back-compatible aliases used by earlier notebooks/tests.
+        'IOmega': I_omega,
+        'IdL': I_dl,
         'bayes_factor': bayes_factor,
         'prior_odds': prior_odds,
         'posterior_odds': posterior_odds,
@@ -106,6 +109,9 @@ def compute_coincident_odds(primary_event, secondary_event, **kwargs):
         'I_omega': I_omega,
         'I_dl': I_dl,
         'I_t': I_t,
+        # Back-compatible aliases used by earlier notebooks/tests.
+        'IOmega': I_omega,
+        'IdL': I_dl,
         'bayes_factor': bayes_factor,
         'prior_odds': prior_odds,
         'posterior_odds': posterior_odds,

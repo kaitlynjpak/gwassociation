@@ -6,8 +6,9 @@ def test_IOmega_uniform_expectation_is_one(gwevent, N=2000, tol=0.1):
     sm = gwevent.skymap
     nside, prob = sm["nside"], sm["prob"]
     # Random uniform sky samples
-    u = np.random.rand(N)
-    v = np.random.rand(N)
+    rng = np.random.default_rng(12345)
+    u = rng.random(N)
+    v = rng.random(N)
     ra  = 2*np.pi*u
     dec = np.arcsin(2*v - 1)
 

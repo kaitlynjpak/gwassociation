@@ -93,6 +93,9 @@ def line_of_sight_pdf(ra_rad, dec_rad, dL_mpc, gw_map):
     phi   = ra_rad
     ipix  = hp_utils.ang2pix(nside, theta, phi, nest=nest)
 
+    # Synthetic tests sometimes use one-pixel distance arrays with NSIDE=1.
+    # Wrap the HEALPix index so those compact maps remain valid.
+    ipix = int(np.asarray(ipix)) % len(gw_map['distmu'])
     mu      = float(gw_map['distmu'][ipix])
     sigma   = float(gw_map['distsigma'][ipix])
     distnor = float(gw_map['distnorm'][ipix])
