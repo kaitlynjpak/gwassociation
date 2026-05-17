@@ -12,7 +12,7 @@ def run_working_example():
     # Check if test data exists
     if not Path("test_data/test_skymap.fits").exists():
         print("\n✗ Test data not found!")
-        print("Please run: python test_gw_assoc.py")
+        print("Please run: python test_gwassociation.py")
         print("This will create the test data needed for this example.")
         return False
     
@@ -20,11 +20,11 @@ def run_working_example():
     
     # Import the framework
     try:
-        from gw_assoc import Association
-        from gw_assoc.plots import plot_association_summary
+        from gwassociation import Association
+        from gwassociation.plots import plot_association_summary
     except ImportError as e:
         print(f"✗ Import error: {e}")
-        print("Make sure gw_assoc is in your Python path")
+        print("Make sure gwassociation is in your Python path")
         return False
     
     # ============================================================
@@ -184,7 +184,7 @@ def run_working_example():
     
     # Try to create ranking plot
     try:
-        from gw_assoc.plots import plot_candidate_ranking
+        from gwassociation.plots import plot_candidate_ranking
         plot_candidate_ranking(rankings, "example_ranking.png")
         print("✓ Saved ranking plot: example_ranking.png")
     except Exception as e:

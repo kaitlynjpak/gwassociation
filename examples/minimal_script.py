@@ -1,10 +1,10 @@
 # examples/minimal_script.py  — REAL calculation (3D FITS path)
 import numpy as np
-from gw_assoc.ingest import load_gw_3d_fits, load_transient
-from gw_assoc.density import GWPosteriorDensity
-from gw_assoc.fov import fullsky_prior, chime_fov_prior
-from gw_assoc.stats import joint_overlap_I3D, distance_overlap_ID, distance_overlap_ID_lensed, posterior_odds
-from gw_assoc.plots import plot_los_distance, render_odds_table
+from gwassociation.ingest import load_gw_3d_fits, load_transient
+from gwassociation.density import GWPosteriorDensity
+from gwassociation.fov import fullsky_prior, chime_fov_prior
+from gwassociation.stats import joint_overlap_I3D, distance_overlap_ID, distance_overlap_ID_lensed, posterior_odds
+from gwassociation.plots import plot_los_distance, render_odds_table
 
 # --- EDIT THESE ---
 GW_3D = "Bilby.offline1.multiorder.fits.gz"  # your file
@@ -40,7 +40,7 @@ O3_full = posterior_odds(I3_full, R_EM_PER_DAY, DELTA_T_HOURS)
 O3_fov  = posterior_odds(I3_fov,  R_EM_PER_DAY, DELTA_T_HOURS)
 O1D     = posterior_odds(ID,      R_EM_PER_DAY, DELTA_T_HOURS)
 
-print("\n=== gw_assoc MVP results (real overlaps) ===")
+print("\n=== gwassociation MVP results (real overlaps) ===")
 render_odds_table([
     ("I_3D + Full-sky prior", O3_full),
     ("I_3D + FOV prior",      O3_fov),

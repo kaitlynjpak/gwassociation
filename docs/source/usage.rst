@@ -6,29 +6,31 @@ Usage
 Installation
 ------------
 
-To use Lumache, first install it using pip:
+Install the package from a checkout with editable mode:
 
 .. code-block:: console
 
-   (.venv) $ pip install lumache
+   pip install -e .
 
-Creating recipes
-----------------
+Python API
+----------
 
-To retrieve a list of random ingredients,
-you can use the ``lumache.get_random_ingredients()`` function:
+.. code-block:: python
 
-.. autofunction:: lumache.get_random_ingredients
+   from gwassociation import Association
 
-The ``kind`` parameter should be either ``"meat"``, ``"fish"``,
-or ``"veggies"``. Otherwise, :py:func:`lumache.get_random_ingredients`
-will raise an exception.
+   assoc = Association("skymap.fits", {
+       "ra": 120.5,
+       "dec": -30.0,
+       "z": 0.05,
+       "time": 1234567890.0,
+       "gw_time": 1234567880.0,
+   })
+   results = assoc.compute_odds()
 
-.. autoexception:: lumache.InvalidKindError
+Command line
+------------
 
-For example:
+.. code-block:: console
 
->>> import lumache
->>> lumache.get_random_ingredients()
-['shells', 'gorgonzola', 'parsley']
-
+   gwassociation --gw-file skymap.fits --ra 120.5 --dec -30.0 --time 1234567890

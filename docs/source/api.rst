@@ -4,4 +4,8 @@ API
 .. autosummary::
    :toctree: generated
 
-   lumache
+   gwassociation
+   gwassociation.association
+   gwassociation.analysis
+   gwassociation.io
+   gwassociation.plotting

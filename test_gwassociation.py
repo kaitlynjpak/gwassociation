@@ -9,7 +9,7 @@ import sys
 import json
 from pathlib import Path
 
-from gw_assoc.utils import healpix as hp_utils
+from gwassociation.utils import healpix as hp_utils
 
 # ============================================================================
 # 1. GENERATE TEST DATA
@@ -110,16 +110,16 @@ def test_imports():
     print("="*60)
     
     modules_to_test = [
-        ("gw_assoc", "Main module"),
-        ("gw_assoc.io.transient", "Transient I/O"),
-        ("gw_assoc.io.skymap", "Skymap I/O"),
-        ("gw_assoc.analysis.spatial", "Spatial analysis"),
-        ("gw_assoc.analysis.temporal", "Temporal analysis"),
-        ("gw_assoc.analysis.los", "Line of sight"),
-        ("gw_assoc.analysis.odds", "Odds calculation"),
-        ("gw_assoc.association", "Association class"),
-        ("gw_assoc.plotting.skymap", "Skymap plotting"),
-        ("gw_assoc.plots", "Summary plots"),
+        ("gwassociation", "Main module"),
+        ("gwassociation.io.transient", "Transient I/O"),
+        ("gwassociation.io.skymap", "Skymap I/O"),
+        ("gwassociation.analysis.spatial", "Spatial analysis"),
+        ("gwassociation.analysis.temporal", "Temporal analysis"),
+        ("gwassociation.analysis.los", "Line of sight"),
+        ("gwassociation.analysis.odds", "Odds calculation"),
+        ("gwassociation.association", "Association class"),
+        ("gwassociation.plotting.skymap", "Skymap plotting"),
+        ("gwassociation.plots", "Summary plots"),
     ]
     
     failed = []
@@ -141,8 +141,8 @@ def test_basic_functionality():
     print("="*60)
     
     try:
-        from gw_assoc.io.transient import Transient
-        from gw_assoc.io.skymap import GWEvent
+        from gwassociation.io.transient import Transient
+        from gwassociation.io.skymap import GWEvent
         
         # Test Transient creation
         transient = Transient(
@@ -187,7 +187,7 @@ def test_association_calculation():
     print("="*60)
     
     try:
-        from gw_assoc import Association
+        from gwassociation import Association
         
         # Test with good match (close in sky and distance)
         print("\n1. Testing GOOD MATCH (close in position and distance):")
@@ -240,8 +240,8 @@ def test_plotting():
     print("="*60)
     
     try:
-        from gw_assoc import Association
-        from gw_assoc.plots import plot_association_summary
+        from gwassociation import Association
+        from gwassociation.plots import plot_association_summary
         
         # Create output directory
         plot_dir = Path("test_plots")
@@ -289,7 +289,7 @@ def test_cli():
     import subprocess
     
     cmd = [
-        "python", "-m", "gw_assoc.cli",
+        "python", "-m", "gwassociation.cli",
         "--gw-file", "test_data/test_skymap.fits",
         "--ra", "120.5",
         "--dec", "-30.0",
@@ -342,8 +342,8 @@ def integration_test():
     print("="*60)
     
     try:
-        from gw_assoc import Association
-        from gw_assoc.plots import plot_candidate_ranking
+        from gwassociation import Association
+        from gwassociation.plots import plot_candidate_ranking
         
         # Load test transients
         with open("test_data/test_transients.json", "r") as f:
@@ -392,7 +392,7 @@ def integration_test():
 def run_all_tests():
     """Run all tests and report results"""
     print("\n" + "="*60)
-    print("GW-ASSOC TEST SUITE")
+    print("GWASSOCIATION TEST SUITE")
     print("="*60)
     
     # Track results
@@ -442,9 +442,9 @@ def test_minimal():
     
     try:
         # Test with mock data
-        from gw_assoc.io.transient import Transient
-        from gw_assoc.analysis.temporal import TemporalOverlap
-        from gw_assoc.analysis.los import DistanceOverlap
+        from gwassociation.io.transient import Transient
+        from gwassociation.analysis.temporal import TemporalOverlap
+        from gwassociation.analysis.los import DistanceOverlap
         
         print("Testing basic classes...")
         
@@ -475,8 +475,8 @@ def test_minimal():
         
     except Exception as e:
         print(f"✗ Even minimal test failed: {e}")
-        print("\nMake sure the gw_assoc package is in your Python path:")
-        print("  export PYTHONPATH=$PYTHONPATH:/path/to/gw_assoc/parent/directory")
+        print("\nMake sure the gwassociation package is in your Python path:")
+        print("  export PYTHONPATH=$PYTHONPATH:/path/to/gwassociation/parent/directory")
         return False
 
 # ============================================================================
@@ -486,7 +486,7 @@ def test_minimal():
 if __name__ == "__main__":
     import argparse
     
-    parser = argparse.ArgumentParser(description="Test GW-Assoc Framework")
+    parser = argparse.ArgumentParser(description="Test GWAssociation Framework")
     parser.add_argument("--minimal", action="store_true", 
                        help="Run minimal tests only (no optional dependencies)")
     parser.add_argument("--quick", action="store_true",

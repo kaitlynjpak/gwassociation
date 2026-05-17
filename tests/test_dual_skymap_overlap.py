@@ -1,8 +1,8 @@
 import numpy as np
 
-from gw_assoc.analysis.spatial import SpatialOverlap
-from gw_assoc.analysis.radial import RadialOverlap
-from gw_assoc.stats import prior_dl2
+from gwassociation.analysis.spatial import SpatialOverlap
+from gwassociation.analysis.radial import RadialOverlap
+from gwassociation.stats import prior_dl2
 
 
 class DummyEvent:

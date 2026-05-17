@@ -28,8 +28,8 @@ def main(gw_file, secondary_skymap, ra, dec, z, z_err, ttime,
     """Run GW-EM association analysis"""
     
     # Only import here to avoid issues if package not fully installed
-    from gw_assoc import Association
-    from gw_assoc.plots import plot_association_summary
+    from gwassociation import Association
+    from gwassociation.plots import plot_association_summary
     
     out = pathlib.Path(outdir)
     out.mkdir(parents=True, exist_ok=True)

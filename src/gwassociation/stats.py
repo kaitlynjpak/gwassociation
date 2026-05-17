@@ -1,4 +1,4 @@
-# src/gw_assoc/stats.py
+# src/gwassociation/stats.py
 from __future__ import annotations
 import numpy as np
 from typing import Literal

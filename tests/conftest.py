@@ -1,7 +1,7 @@
 # tests/conftest.py
 import os, glob, pytest
 from types import SimpleNamespace
-from gw_assoc.io import load_gw_skymap, GWEvent
+from gwassociation.io import load_gw_skymap, GWEvent
 
 @pytest.fixture(scope="session")
 def gw_fits_path():

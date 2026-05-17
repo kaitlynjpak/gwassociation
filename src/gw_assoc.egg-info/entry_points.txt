@@ -1,2 +1,0 @@
-[console_scripts]
-gw-assoc = gw_assoc.cli:main
