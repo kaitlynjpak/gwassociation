@@ -1,3 +1,11 @@
+"""High-level workflows for gravitational-wave/electromagnetic association.
+
+The :class:`Association` class is the package's convenience facade.  It loads a
+primary gravitational-wave sky map, optionally loads a secondary localizations,
+or wraps a point-like electromagnetic transient, then dispatches to the lower
+level spatial, distance, temporal, radial, and odds calculators.
+"""
+
 from typing import Dict, Any, Optional
 
 from .io import GWEvent
@@ -121,12 +129,10 @@ class Association:
         
         Parameters
         ----------
-        **kwargs : dict
-            Additional parameters for odds calculation:
-            - em_model: 'kilonova', 'grb', or 'afterglow'
-            - prior_odds: Prior odds ratio (default 1.0)
-            - chance_coincidence_rate: Rate of chance coincidences
-            - H0_uncertainty: Hubble constant uncertainty
+        kwargs : dict
+            Additional keyword parameters for odds calculation, including ``em_model``
+            (``'kilonova'``, ``'grb'``, or ``'afterglow'``), ``prior_odds``,
+            ``chance_coincidence_rate``, and ``H0_uncertainty``.
         
         Returns
         -------

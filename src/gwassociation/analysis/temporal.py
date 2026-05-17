@@ -1,3 +1,10 @@
+"""Temporal compatibility models for GW--EM counterpart candidates.
+
+The :class:`TemporalOverlap` calculator compares the elapsed time between a
+primary event and a transient against simple phenomenological delay models for
+kilonovae, short gamma-ray bursts, and afterglows.
+"""
+
 # temporal overlap integrals
 import numpy as np
 
@@ -9,18 +16,20 @@ class TemporalOverlap:
         '''
         Calculate temporal overlap integral I_t
         
-        Parameters:
-        -----------
-        gw_event: GWEvent with merger time
-        em_transient: Transient with detection time
-        model: Type of EM counterpart expected
-               'kilonova': peaks ~1 day after merger
-               'grb': peaks ~seconds after merger
-               'afterglow': peaks ~days to weeks after merger
-        
-        Returns:
-        --------
-        I_t: Temporal overlap probability
+        Parameters
+        ----------
+        gw_event : GWEvent
+            Event-like object with a merger time.
+        em_transient : Transient
+            Candidate-like object with a detection time.
+        model : str
+            Counterpart model. Supported values are ``'kilonova'``, ``'grb'``,
+            and ``'afterglow'``.
+
+        Returns
+        -------
+        float
+            Temporal overlap probability.
         '''
         event_time = getattr(em_transient, "time", None)
         if event_time is None:

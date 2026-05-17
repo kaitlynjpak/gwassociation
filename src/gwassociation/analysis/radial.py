@@ -1,3 +1,11 @@
+"""Radial distance-overlap terms for two three-dimensional skymaps.
+
+The :class:`RadialOverlap` calculator evaluates the line-of-sight component of a
+coincident-localization Bayes factor when both events provide HEALPix distance
+metadata.  If either map lacks usable distance information, the calculator
+returns a neutral factor so spatial-only workflows continue to run.
+"""
+
 import numpy as np
 
 from ..stats import prior_dl2, DL_MIN_MPC, DL_MAX_MPC

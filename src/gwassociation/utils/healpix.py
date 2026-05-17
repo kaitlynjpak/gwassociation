@@ -43,6 +43,7 @@ def _ensure_astropy_healpix():
 
 
 def _healpix_obj(nside: int, nest: bool = True) -> "HEALPix":
+    """Build an ``astropy_healpix.HEALPix`` helper for fallback transforms."""
     if HEALPY_AVAILABLE:
         raise RuntimeError("HEALPix fallback requested even though healpy is available.")
     _ensure_astropy_healpix()
@@ -51,24 +52,28 @@ def _healpix_obj(nside: int, nest: bool = True) -> "HEALPix":
 
 
 def npix2nside(npix: int) -> int:
+    """Return the HEALPix NSIDE implied by a number of pixels."""
     if HEALPY_AVAILABLE:
         return int(_hp.npix2nside(npix))
     return int(math.sqrt(npix / 12.0))
 
 
 def nside2npix(nside: int) -> int:
+    """Return the number of HEALPix pixels for ``nside``."""
     if HEALPY_AVAILABLE:
         return int(_hp.nside2npix(nside))
     return 12 * int(nside) * int(nside)
 
 
 def nside2pixarea(nside: int) -> float:
+    """Return the solid angle of one HEALPix pixel in steradians."""
     if HEALPY_AVAILABLE:
         return float(_hp.nside2pixarea(nside))
     return 4.0 * math.pi / nside2npix(nside)
 
 
 def ang2pix(nside: int, theta, phi, nest: bool = True):
+    """Convert spherical angles in radians to HEALPix pixel indices."""
     if HEALPY_AVAILABLE:
         return _hp.ang2pix(nside, theta, phi, nest=nest)
     hp = _healpix_obj(nside, nest)
@@ -78,6 +83,7 @@ def ang2pix(nside: int, theta, phi, nest: bool = True):
 
 
 def pix2ang(nside: int, ipix, nest: bool = True):
+    """Convert HEALPix pixel indices to ``(theta, phi)`` angles in radians."""
     if HEALPY_AVAILABLE:
         return _hp.pix2ang(nside, ipix, nest=nest)
     hp = _healpix_obj(nside, nest)
@@ -88,6 +94,7 @@ def pix2ang(nside: int, ipix, nest: bool = True):
 
 
 def ang2vec(theta, phi):
+    """Convert spherical angles in radians to Cartesian unit vectors."""
     if HEALPY_AVAILABLE:
         return _hp.ang2vec(theta, phi)
     theta = np.asarray(theta, dtype=float)
@@ -100,6 +107,7 @@ def ang2vec(theta, phi):
 
 
 def pix2vec(nside: int, ipix, nest: bool = True):
+    """Convert HEALPix pixel indices to Cartesian unit vectors."""
     if HEALPY_AVAILABLE:
         return _hp.pix2vec(nside, ipix, nest=nest)
     theta, phi = pix2ang(nside, ipix, nest=nest)
@@ -124,18 +132,21 @@ def write_map(filename: str, m, overwrite: bool = True):
 
 
 def mollview(*args, **kwargs):
+    """Call :func:`healpy.mollview` or raise an informative dependency error."""
     if not HEALPY_AVAILABLE:
         raise RuntimeError("healpy is required for sky-map plotting. Install healpy to enable mollview.")
     return _hp.mollview(*args, **kwargs)
 
 
 def projscatter(*args, **kwargs):
+    """Call :func:`healpy.projscatter` for overlays on Mollweide plots."""
     if not HEALPY_AVAILABLE:
         raise RuntimeError("healpy is required for projscatter plotting. Install healpy to enable this feature.")
     return _hp.projscatter(*args, **kwargs)
 
 
 def graticule(*args, **kwargs):
+    """Call :func:`healpy.graticule` for sky-coordinate grid lines."""
     if not HEALPY_AVAILABLE:
         raise RuntimeError("healpy is required for graticule plotting. Install healpy to enable this feature.")
     return _hp.graticule(*args, **kwargs)

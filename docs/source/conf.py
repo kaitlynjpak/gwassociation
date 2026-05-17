@@ -1,13 +1,18 @@
 # Configuration file for the Sphinx documentation builder.
 
+import os
+import sys
+
+sys.path.insert(0, os.path.abspath("../../src"))
+
 # -- Project information
 
 project = 'gwassociation'
 copyright = '2026, gwassociation contributors'
 author = 'gwassociation contributors'
 
-release = '0.1'
-version = '0.1.0'
+release = '0.2.0'
+version = '0.2'
 
 # -- General configuration
 
@@ -33,3 +38,7 @@ html_theme = 'sphinx_rtd_theme'
 
 # -- Options for EPUB output
 epub_show_urls = 'footnote'
+
+# -- Autodoc options
+autodoc_typehints = 'description'
+autosummary_generate = True

@@ -1,3 +1,10 @@
+"""Command-line interface for running GW--EM association calculations.
+
+The ``gwassociation`` console script accepts a primary sky map and either a
+point-like transient position or a secondary sky map, computes odds terms, and
+writes JSON and optional diagnostic plot products.
+"""
+
 import os
 import json
 import pathlib

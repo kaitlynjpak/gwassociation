@@ -1,3 +1,12 @@
+"""Numerical overlap utilities and priors used by association analyses.
+
+This module provides lower-level functions for sky, distance, three-dimensional,
+and temporal factors.  Most users should start with
+:class:`gwassociation.association.Association`; these functions are useful for
+notebook studies, validation tests, and custom pipelines that need direct access
+to individual terms.
+"""
+
 # src/gwassociation/stats.py
 from __future__ import annotations
 import numpy as np
@@ -106,16 +115,13 @@ def joint_overlap_I3D(gw_density,
 
 def IdL_at_host(ra_rad, dec_rad, z_host, cosmo, los_pdf_fn,
                 dmin=DL_MIN_MPC, dmax=DL_MAX_MPC):
-    """
-    I_dL = p_LOS(dL_em) / p0(dL_em), evaluated at the EM host distance.
+    """Evaluate the host-distance line-of-sight Bayes factor.
 
-    Parameters
-    ----------
-    ra_rad, dec_rad : float (radians)
-    z_host : float
-    cosmo : astropy.cosmology.FlatLambdaCDM
-    los_pdf_fn : callable (ra_rad, dec_rad, dL_mpc) -> p_LOS(dL | Ω) in 1/Mpc
-        NOTE: los_pdf_fn must already include r^2 * Normal(mu, sigma) * distnorm(Ω).
+    ``ra_rad`` and ``dec_rad`` are sky coordinates in radians, ``z_host`` is
+    the candidate host redshift, and ``cosmo`` is an Astropy cosmology used to
+    convert redshift to luminosity distance. ``los_pdf_fn`` must accept
+    ``(ra_rad, dec_rad, dL_mpc)`` and return a line-of-sight probability density
+    in inverse megaparsecs.
     """
     dL_em = cosmo.luminosity_distance(z_host).to_value('Mpc')
     p_los = float(los_pdf_fn(ra_rad, dec_rad, dL_em))

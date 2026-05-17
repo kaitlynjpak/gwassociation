@@ -1,3 +1,5 @@
+"""Diagnostic plots for distance and temporal probability distributions."""
+
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy import stats
