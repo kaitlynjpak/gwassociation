@@ -1,0 +1,31 @@
+[
+  {
+    "name": "AT2024test_good",
+    "ra": 120.5,
+    "dec": -29.8,
+    "z": 0.05,
+    "z_err": 0.005,
+    "time": 1234567891.0,
+    "magnitude": 18.5,
+    "filter_band": "r"
+  },
+  {
+    "name": "AT2024test_far",
+    "ra": 200.0,
+    "dec": 45.0,
+    "z": 0.08,
+    "z_err": 0.01,
+    "time": 1234568000.0,
+    "magnitude": 19.2,
+    "filter_band": "g"
+  },
+  {
+    "name": "AT2024test_noredshift",
+    "ra": 119.8,
+    "dec": -30.5,
+    "z": null,
+    "time": 1234567900.0,
+    "magnitude": 17.8,
+    "filter_band": "i"
+  }
+]

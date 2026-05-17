@@ -1,0 +1,4 @@
+name,ra,dec,z,z_err,time,magnitude,filter_band
+AT2024test_good,120.5,-29.8,0.05,0.005,1234567891.0,18.5,r
+AT2024test_far,200.0,45.0,0.08,0.01,1234568000.0,19.2,g
+AT2024test_noredshift,119.8,-30.5,,,1234567900.0,17.8,i

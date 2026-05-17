@@ -1,0 +1,20 @@
+{
+  "gw_file": "test_data/test_skymap.fits",
+  "transient": {
+    "ra": 120.5,
+    "dec": -30.0,
+    "z": 0.05,
+    "time": 1234567891.0
+  },
+  "I_omega": 4.2431328313571445e-26,
+  "I_dl": 1.0,
+  "I_t": 1.0,
+  "bayes_factor": 4.243132831357144e-22,
+  "prior_odds": 1.0,
+  "posterior_odds": 4.243132831357144e-22,
+  "log_posterior_odds": -21.372313372423235,
+  "P_chance": 0.0001,
+  "associated": "False",
+  "confidence": 0.0,
+  "note": "Full Bayesian calculation"
+}
