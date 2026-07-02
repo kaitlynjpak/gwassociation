@@ -239,8 +239,11 @@ def screen(outdir, skymap_dir, time_window, far_threshold, bbh_threshold,
 
 
 @main.command(name="pair-odds")
-@click.argument("skymap1", type=click.Path(exists=True, dir_okay=False))
-@click.argument("skymap2", type=click.Path(exists=True, dir_okay=False))
+@click.argument("event1")
+@click.argument("event2")
+@click.option("--skymap-dir", "skymap_dirs", multiple=True,
+              type=click.Path(file_okay=False),
+              help="Local directory to look for sky maps in (repeatable).")
 @click.option("--model", type=click.Choice(["kilonova", "grb", "afterglow"]),
               default="kilonova", help="EM temporal model (used when times are given).")
 @click.option("--gw-time", type=float, default=None,
@@ -250,17 +253,31 @@ def screen(outdir, skymap_dir, time_window, far_threshold, bbh_threshold,
               help="Score sky position only (skip the distance term).")
 @click.option("--out", "outfile", type=click.Path(dir_okay=False), default=None,
               help="Optional path to write the full result as JSON.")
-def pair_odds(skymap1, skymap2, model, gw_time, event2_time, no_distance, outfile):
+def pair_odds(event1, event2, skymap_dirs, model, gw_time, event2_time, no_distance, outfile):
     """Point-source association odds for a PAIR of GW events.
 
-    Reduces SKYMAP2 to a point source (its peak position + distance-derived
-    redshift) and scores it against SKYMAP1 with the same odds path used for
+    EVENT1 and EVENT2 may be sky-map file paths OR event IDs. An event ID is
+    resolved to a sky map by looking in --skymap-dir directories, then by
+    downloading from GraceDB (superevents like S250727dc) or the public archive
+    (legacy events like GW170817); downloads are cached under ~/.cache.
+
+    EVENT2 is reduced to a point source (its peak position + distance-derived
+    redshift) and scored against EVENT1 with the same odds path used for
     GW170817. Prints the I_omega / I_dl / I_t / odds / P breakdown.
     """
     from gwassociation.screening.bridge import pair_point_odds
+    from gwassociation.screening.resolve import resolve_skymap
 
-    name1 = pathlib.Path(skymap1).name.split(".")[0]
-    name2 = pathlib.Path(skymap2).name.split(".")[0]
+    def _resolve(event):
+        try:
+            return resolve_skymap(event, search_dirs=skymap_dirs, log=click.echo)
+        except FileNotFoundError as exc:
+            raise click.UsageError(str(exc))
+
+    skymap1 = _resolve(event1)
+    skymap2 = _resolve(event2)
+    name1 = pathlib.Path(event1).name.split(".")[0]
+    name2 = pathlib.Path(event2).name.split(".")[0]
 
     r = pair_point_odds(
         skymap1, skymap2, name1=name1, name2=name2, em_model=model,
