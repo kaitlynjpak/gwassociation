@@ -110,11 +110,11 @@ def _plot_ligo_style(fig, prob, nest, transient, levels):
 
     if transient is not None and hasattr(transient, "ra") and hasattr(transient, "dec"):
         coord = SkyCoord(float(transient.ra) * u.deg, float(transient.dec) * u.deg)
-        ax.plot_coord(coord, marker="*", color="gold", markersize=18,
+        ax.plot_coord(coord, marker="o", color="gold", markersize=10,
                       markeredgecolor="black", markeredgewidth=1.0, linestyle="none")
         handles.append(
-            mlines.Line2D([], [], marker="*", color="gold", markeredgecolor="black",
-                          markersize=14, linestyle="none", label="EM transient")
+            mlines.Line2D([], [], marker="o", color="gold", markeredgecolor="black",
+                          markersize=9, linestyle="none", label="EM transient")
         )
 
     ax.legend(handles=handles, loc="upper right", fontsize=11)
@@ -126,8 +126,8 @@ def _plot_healpy_style(fig, prob, nest, transient):
     hp_utils.mollview(prob, title="GW Skymap with EM Candidate",
                       unit="Probability", fig=fig.number, nest=nest, cmap="YlOrRd")
     if transient is not None and hasattr(transient, "ra") and hasattr(transient, "dec"):
-        hp_utils.projscatter(transient.ra, transient.dec, lonlat=True, marker="*",
-                             s=500, color="blue", edgecolor="white", linewidth=2,
+        hp_utils.projscatter(transient.ra, transient.dec, lonlat=True, marker="o",
+                             s=120, color="blue", edgecolor="white", linewidth=2,
                              label="EM Transient")
     hp_utils.graticule(dpar=30, dmer=30, alpha=0.3)
 
@@ -137,7 +137,7 @@ def _plot_basic(fig, transient):
     ax = fig.add_subplot(111)
     ax.set_title("Skymap (basic view)")
     if transient is not None and hasattr(transient, "ra") and hasattr(transient, "dec"):
-        ax.plot(transient.ra, transient.dec, "*", markersize=20, color="blue",
+        ax.plot(transient.ra, transient.dec, "o", markersize=12, color="blue",
                 label="EM Transient")
         ax.set_xlabel("RA [deg]")
         ax.set_ylabel("Dec [deg]")
