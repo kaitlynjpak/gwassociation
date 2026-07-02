@@ -41,44 +41,83 @@ class RadialOverlap:
         prob_primary = self._normalize(self._event_prob(primary_event))
         prob_secondary = self._normalize(self._event_prob(secondary_event))
 
-        joint = prob_primary * prob_secondary
-        joint_sum = np.sum(joint)
-        if joint_sum <= 0:
-            return 0.0
-        weights = joint / joint_sum
-
         try:
-            mu1, sigma1, norm1 = self._extract_distance_parameters(primary_event)
-            mu2, sigma2, norm2 = self._extract_distance_parameters(secondary_event)
+            mu1, sigma1, _norm1 = self._extract_distance_parameters(primary_event)
+            mu2, sigma2, _norm2 = self._extract_distance_parameters(secondary_event)
         except ValueError:
             return 1.0
 
-        # Pixels with no distance information store distmu = inf / distnorm = 0
-        # in LIGO 3D skymaps. Without masking, inf - inf = nan and (since those
-        # pixels still enter the weighted sum) the whole result becomes nan.
-        # Such pixels carry no distance information, so they contribute zero.
+        # Work with the *physical* conditional-distance moments (mean, std), not
+        # the raw ansatz parameters distmu/distsigma. In low-probability pixels
+        # the raw parameters are pathological (distmu can be large-negative and
+        # distnorm ~ 1e80); left unmasked they detonate the weighted sum. The
+        # moments are finite and well-behaved wherever the pixel carries usable
+        # distance information, and non-finite/unphysical elsewhere.
+        mean1, std1 = self._conditional_moments(mu1, sigma1)
+        mean2, std2 = self._conditional_moments(mu2, sigma2)
+
         valid = (
-            np.isfinite(mu1) & np.isfinite(mu2)
-            & np.isfinite(sigma1) & np.isfinite(sigma2)
-            & (norm1 > 0) & (norm2 > 0)
+            np.isfinite(mean1) & np.isfinite(mean2)
+            & np.isfinite(std1) & np.isfinite(std2)
+            & (std1 > 0) & (std2 > 0)
+            & (mean1 > 0) & (mean2 > 0)
+            & (mean1 < self.dmax) & (mean2 < self.dmax)
         )
-        mu1 = np.where(valid, mu1, 0.0)
-        mu2 = np.where(valid, mu2, 0.0)
-        norm1 = np.where(valid, norm1, 0.0)
-        norm2 = np.where(valid, norm2, 0.0)
 
-        variance = sigma1 ** 2 + sigma2 ** 2 + 1e-12
-        gaussian_overlap = (
-            1.0 / np.sqrt(2.0 * np.pi * variance)
-        ) * np.exp(-0.5 * ((mu1 - mu2) ** 2) / variance)
+        weights = np.where(valid, prob_primary * prob_secondary, 0.0)
+        weight_sum = weights.sum()
+        if weight_sum <= 0:
+            # No sky pixel carries usable, overlapping distance information;
+            # the distance term is uninformative rather than a rejection.
+            return 1.0
+        weights = weights / weight_sum
 
-        los_overlap = gaussian_overlap * norm1 * norm2
-        mu_bar = 0.5 * (mu1 + mu2)
-        prior = prior_dl2(mu_bar, self.dmin, self.dmax)
-        prior = np.clip(prior, 1e-30, None)
+        # Per line of sight, the two conditional distance PDFs are approximated
+        # as Gaussians in luminosity distance. Their overlap Bayes factor is
+        #   I_dL(n) = integral p1(d) p2(d) / prior(d) dd
+        #          ~= N(mean1 - mean2; 0, sqrt(std1^2 + std2^2)) / prior(d_p),
+        # with prior(d) proportional to d^2 (uniform in volume) evaluated at the
+        # inverse-variance-weighted distance d_p where the product concentrates.
+        # Substitute safe placeholders in invalid pixels so the vectorised math
+        # never evaluates inf/nan (those pixels are zeroed out by ``valid``).
+        mean1_s = np.where(valid, mean1, 0.0)
+        mean2_s = np.where(valid, mean2, 0.0)
+        var_safe = np.where(valid, std1 ** 2 + std2 ** 2, 1.0)
+        overlap = np.where(
+            valid,
+            1.0 / np.sqrt(2.0 * np.pi * var_safe)
+            * np.exp(-0.5 * (mean1_s - mean2_s) ** 2 / var_safe),
+            0.0,
+        )
 
-        radial_factor = np.where(valid, los_overlap / prior, 0.0)
+        inv1 = 1.0 / np.where(valid, std1 ** 2, 1.0)
+        inv2 = 1.0 / np.where(valid, std2 ** 2, 1.0)
+        mean_p = np.where(valid, (mean1_s * inv1 + mean2_s * inv2) / (inv1 + inv2), 1.0)
+        prior = np.clip(prior_dl2(mean_p, self.dmin, self.dmax), 1e-30, None)
+
+        radial_factor = np.where(valid, overlap / prior, 0.0)
         return float(np.sum(weights * radial_factor))
+
+    @staticmethod
+    def _conditional_moments(distmu, distsigma):
+        """Return the physical (mean, std) of the conditional distance PDF.
+
+        Uses ``ligo.skymap.distance.parameters_to_moments`` to convert the
+        ansatz parameters into the mean and standard deviation of
+        ``p(d) proportional to N(d; distmu, distsigma) d^2`` -- always finite and
+        positive where the pixel has usable distance information. Falls back to
+        treating the ansatz parameters as approximate moments if
+        ``ligo.skymap`` is unavailable.
+        """
+        distmu = np.asarray(distmu, dtype=float)
+        distsigma = np.asarray(distsigma, dtype=float)
+        try:
+            import ligo.skymap.distance as lsd
+
+            mean, std, _ = lsd.parameters_to_moments(distmu, distsigma)
+            return np.asarray(mean, dtype=float), np.asarray(std, dtype=float)
+        except Exception:
+            return distmu, distsigma
 
     @staticmethod
     def _event_prob(event):
@@ -119,4 +158,3 @@ class RadialOverlap:
         norm = np.asarray(norm, dtype=float)
 
         return mu, sigma, norm
-
