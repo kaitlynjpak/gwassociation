@@ -238,5 +238,54 @@ def screen(outdir, skymap_dir, time_window, far_threshold, bbh_threshold,
         click.echo(f"  {name}")
 
 
+@main.command(name="pair-odds")
+@click.argument("skymap1", type=click.Path(exists=True, dir_okay=False))
+@click.argument("skymap2", type=click.Path(exists=True, dir_okay=False))
+@click.option("--model", type=click.Choice(["kilonova", "grb", "afterglow"]),
+              default="kilonova", help="EM temporal model (used when times are given).")
+@click.option("--gw-time", type=float, default=None,
+              help="Event-1 GPS time; with --event2-time activates the temporal term.")
+@click.option("--event2-time", type=float, default=None, help="Event-2 GPS time.")
+@click.option("--no-distance", is_flag=True,
+              help="Score sky position only (skip the distance term).")
+@click.option("--out", "outfile", type=click.Path(dir_okay=False), default=None,
+              help="Optional path to write the full result as JSON.")
+def pair_odds(skymap1, skymap2, model, gw_time, event2_time, no_distance, outfile):
+    """Point-source association odds for a PAIR of GW events.
+
+    Reduces SKYMAP2 to a point source (its peak position + distance-derived
+    redshift) and scores it against SKYMAP1 with the same odds path used for
+    GW170817. Prints the I_omega / I_dl / I_t / odds / P breakdown.
+    """
+    from gwassociation.screening.bridge import pair_point_odds
+
+    name1 = pathlib.Path(skymap1).name.split(".")[0]
+    name2 = pathlib.Path(skymap2).name.split(".")[0]
+
+    r = pair_point_odds(
+        skymap1, skymap2, name1=name1, name2=name2, em_model=model,
+        gw_time=gw_time, event2_time=event2_time, include_distance=not no_distance,
+    )
+    t = r["_transient"]
+
+    click.echo(f"\n=== {name1}  vs  {name2} (as point source) ===")
+    z_str = f", z={t['z']:.4f}" if "z" in t else " (distance off)"
+    click.echo(f"  point: RA={t['ra']:.2f}, Dec={t['dec']:.2f}{z_str}")
+    click.echo(f"  I_omega        : {r['I_omega']:.3e}")
+    click.echo(f"  I_dl           : {r['I_dl']:.3e}")
+    click.echo(f"  I_t            : {r['I_t']:.3e}")
+    click.echo(f"  Bayes factor   : {r['bayes_factor']:.3e}")
+    click.echo(f"  posterior odds : {r['posterior_odds']:.3e}")
+    click.echo(f"  log10 odds     : {r['log_posterior_odds']:.2f}")
+    click.echo(f"  P(assoc)       : {r['confidence']:.1%}")
+
+    if outfile:
+        payload = {k: v for k, v in r.items() if not k.startswith("_")}
+        payload["transient"] = t
+        with open(outfile, "w") as handle:
+            json.dump(payload, handle, indent=2, default=str)
+        click.echo(f"\nWrote {outfile}")
+
+
 if __name__ == "__main__":
     main()
