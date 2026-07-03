@@ -1,0 +1,17 @@
+# Files to include in the source distribution (sdist) beyond the package itself.
+include README.md
+include requirements.txt
+include setup.cfg
+include pyproject.toml
+
+# Test suite and its shared fixtures.
+recursive-include tests *.py
+
+# Compact FITS fixture required for regression coverage (see README).
+graft fits_files
+
+# Documentation sources.
+recursive-include docs *.rst *.py *.txt *.bat Makefile
+
+global-exclude *.py[cod]
+global-exclude __pycache__

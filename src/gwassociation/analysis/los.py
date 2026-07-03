@@ -13,9 +13,12 @@ from astropy.cosmology import FlatLambdaCDM, Planck15
 from astropy import constants
 import astropy.units as u
 
-from ..density import line_of_sight_pdf
+# Re-exported for public use (e.g. `from gwassociation.analysis.los import
+# line_of_sight_pdf`); imported here intentionally even though los.py does not
+# call it directly.
+from ..density import line_of_sight_pdf  # noqa: F401
 
-# [Your existing code from los.py]
+
 zinterp = np.linspace(0, 0.5, 5000)
 dz = zinterp[1] - zinterp[0]
 speed_of_light = constants.c.to('km/s').value

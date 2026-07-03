@@ -100,12 +100,13 @@ GW map should be compared to several transient dictionaries.
 Command line
 ------------
 
-The console script mirrors the point-candidate workflow and writes result files
-to the selected output directory.
+The console script is a command group. ``gwassociation odds`` mirrors the
+point-candidate workflow and writes result files to the selected output
+directory.
 
 .. code-block:: console
 
-   gwassociation \
+   gwassociation odds \
      --gw-file fits_files/S190425z_bayestar.fits.gz,0 \
      --ra 120.5 \
      --dec -30.0 \
@@ -114,6 +115,38 @@ to the selected output directory.
      --gw-time 1234567880 \
      --model kilonova \
      --out results
+
+GW--GW overlap screening
+------------------------
+
+``gwassociation screen`` implements a separate workflow: screening *pairs* of GW
+sky maps for unusually high spatial overlap, a first-pass filter for strongly
+lensed event pairs. It queries GraceDB, downloads the best sky map per event,
+computes the overlap integral for every unique pair, builds an empirical null
+distribution with p-values and multiple-comparison corrections, and ranks the
+highest-overlap pairs. Install the heavier dependency set first:
+
+.. code-block:: console
+
+   pip install -e ".[screen]"
+
+.. code-block:: console
+
+   gwassociation screen \
+     --time-window "32 months ago .. now" \
+     --far-threshold 2.3e-5 \
+     --bbh-threshold 0.1 \
+     --workers 6 \
+     --top-n 30 \
+     --min-days-apart 1 \
+     --out screen_out
+
+Outputs written to ``--out`` include ``overlaps.json``, ``top_pairs.csv``,
+``overlap_histogram.png``, ``survival_function.png``, a joint ``P1*P2`` sky map
+for the top pair(s), and ``summary.json``. Because the all-pairs computation is
+the expensive step, ``--reuse-overlaps overlaps.json`` re-ranks and re-plots
+from a saved run without recomputing. The same pipeline is available in Python
+via :func:`gwassociation.screening.run.run_screening`.
 
 Diagnostic plots
 ----------------

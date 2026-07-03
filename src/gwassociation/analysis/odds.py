@@ -7,7 +7,6 @@ specialized modules under :mod:`gwassociation.analysis`.
 """
 
 import numpy as np
-from typing import Dict, Optional
 from .spatial import SpatialOverlap
 from .los import DistanceOverlap
 from .temporal import TemporalOverlap

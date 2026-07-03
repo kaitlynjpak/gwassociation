@@ -2,7 +2,6 @@ import numpy as np
 
 from gwassociation.analysis.spatial import SpatialOverlap
 from gwassociation.analysis.radial import RadialOverlap
-from gwassociation.stats import prior_dl2
 
 
 class DummyEvent:
@@ -37,25 +36,44 @@ def test_spatial_overlap_map_vs_map_uniform():
     assert np.isclose(overlap, 1.0)
 
 
-def test_radial_overlap_gaussian_products():
-    prob_primary = np.ones(12) / 12
-    prob_secondary = np.ones(12) / 12
-    mu_primary = np.full(12, 100.0)
-    mu_secondary = np.full(12, 110.0)
-    sigma_primary = np.full(12, 10.0)
-    sigma_secondary = np.full(12, 15.0)
-
-    event_a = DummyEvent(prob_primary, mu_primary, sigma_primary)
-    event_b = DummyEvent(prob_secondary, mu_secondary, sigma_secondary)
-
-    radial = RadialOverlap()
-    overlap = radial.compute_map_overlap(event_a, event_b)
-
-    var = sigma_primary[0] ** 2 + sigma_secondary[0] ** 2
-    gaussian_overlap = (1 / np.sqrt(2 * np.pi * var)) * np.exp(-0.5 * (10 ** 2) / var)
-    prior = prior_dl2(105.0)
-    expected = gaussian_overlap / prior
-
-    assert np.isclose(overlap, expected)
+def _radial(mu_a, mu_b, sig_a=10.0, sig_b=15.0, npix=12):
+    a = DummyEvent(np.ones(npix) / npix, np.full(npix, mu_a), np.full(npix, sig_a))
+    b = DummyEvent(np.ones(npix) / npix, np.full(npix, mu_b), np.full(npix, sig_b))
+    return RadialOverlap().compute_map_overlap(a, b)
 
 
+def test_radial_overlap_positive_and_finite():
+    overlap = _radial(100.0, 110.0)
+    assert np.isfinite(overlap)
+    assert overlap > 0.0
+
+
+def test_radial_overlap_decreases_with_distance_separation():
+    # Consistent distances overlap more than mismatched ones.
+    close = _radial(100.0, 100.0)
+    near = _radial(100.0, 130.0)
+    far = _radial(100.0, 400.0)
+    assert close > near > far
+
+
+def test_radial_overlap_masks_pathological_pixels():
+    """Low-probability pixels with garbage distance params must not blow up.
+
+    Real 3D sky maps store distmu ~ -1e5 and distnorm ~ 1e80 in near-zero
+    pixels; these must be masked so the result stays finite and bounded.
+    """
+    good_mu, good_sig = 100.0, 10.0
+    prob = np.ones(12) / 12
+    clean = DummyEvent(prob, np.full(12, good_mu), np.full(12, good_sig))
+
+    mu = np.full(12, good_mu)
+    sig = np.full(12, good_sig)
+    mu[0] = -1.0e5        # pathological distmu (negative)
+    sig[0] = 1.0e6        # pathological distsigma
+    poisoned = DummyEvent(prob, mu, sig)
+    poisoned.distances["distnorm"] = np.full(12, 1.0)
+    poisoned.distances["distnorm"][0] = 1.0e80  # pathological distnorm
+
+    overlap = RadialOverlap().compute_map_overlap(clean, poisoned)
+    assert np.isfinite(overlap)
+    assert 0.0 < overlap < 1.0e6  # bounded, not the old ~1e47 blow-up

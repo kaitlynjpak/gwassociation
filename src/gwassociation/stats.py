@@ -10,9 +10,7 @@ to individual terms.
 # src/gwassociation/stats.py
 from __future__ import annotations
 import numpy as np
-from typing import Literal
 
-from .density import line_of_sight_pdf
 from .utils import healpix as hp_utils
 
 # --- Distance-prior (match notebook): p0(dL) ∝ dL^2 on [1, 1e4] Mpc, normalized ---
