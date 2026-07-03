@@ -39,13 +39,19 @@ def main():
 @click.option("--secondary-time", type=float, default=None,
               help="Event time for the secondary skymap (GPS).")
 @click.option("--gw-time", type=float, default=None, help="GW event time (GPS).")
-@click.option("--model", type=click.Choice(['kilonova', 'grb', 'afterglow']), 
+@click.option("--model", type=click.Choice(['kilonova', 'grb', 'afterglow']),
               default='kilonova', help="EM counterpart model.")
+@click.option("--prior-odds", type=float, default=1.0,
+              help="Prior odds that the two are the same source. Default 1.0 suits an "
+                   "expected GW-EM counterpart; for GW-GW lensing use ~1e-3 to 1e-4.")
+@click.option("--chance-rate", type=float, default=1e-4,
+              help="Chance-coincidence rate (P_chance). The Bayes factor scales as 1/P_chance, "
+                   "so this strongly affects the result; set it for your search.")
 @click.option("--out", "outdir", type=click.Path(file_okay=False), default="out",
               help="Output directory for results.")
 @click.option("--verbose", is_flag=True, help="Verbose output.")
 def odds(events, gw_file, secondary_skymap, skymap_dirs, ra, dec, z, z_err, ttime,
-         secondary_time, gw_time, model, outdir, verbose):
+         secondary_time, gw_time, model, prior_odds, chance_rate, outdir, verbose):
     """Run GW-EM association analysis.
 
     Give the primary GW event (and optional secondary event) as positional
@@ -118,9 +124,11 @@ def odds(events, gw_file, secondary_skymap, skymap_dirs, ra, dec, z, z_err, ttim
         secondary_event_time=secondary_time
     )
     
-    # Compute odds with proper model
-    results = assoc.compute_odds(em_model=model)
-    
+    # Compute odds with the caller's prior odds and chance-coincidence rate.
+    results = assoc.compute_odds(
+        em_model=model, prior_odds=prior_odds, chance_coincidence_rate=chance_rate
+    )
+
     if verbose:
         print("\n=== GW-EM Association Analysis Results ===")
         print(f"Primary GW File: {gw_file}")
@@ -134,20 +142,31 @@ def odds(events, gw_file, secondary_skymap, skymap_dirs, ra, dec, z, z_err, ttim
                 print(f"Redshift: z={z:.4f} ± {z_err:.4f}" if z_err else f"Redshift: z={z:.4f}")
             print(f"Time: {ttime:.2f} (transient), {gw_time:.2f} (GW)")
             print(f"EM Model: {model}")
-        print(f"\nOverlap Integrals:")
+        print("\nOverlap Integrals (data-driven):")
         print(f"  Spatial (I_Ω):  {results['I_omega']:.3e}")
         print(f"  Distance (I_DL): {results['I_dl']:.3e}")
         print(f"  Temporal (I_t):  {results['I_t']:.3e}")
-        print(f"\nStatistics:")
+        print(f"\nAssumptions: prior_odds={prior_odds:g}, chance_rate={chance_rate:g}")
+        print("Result (depends on the assumptions above):")
         print(f"  Bayes Factor:    {results['bayes_factor']:.3e}")
         print(f"  Posterior Odds:  {results['posterior_odds']:.3e}")
         print(f"  Log₁₀ Odds:      {results['log_posterior_odds']:.2f}")
         print(f"  P(Associated):   {results['confidence']:.1%}")
-        print(f"\nDecision: {'ASSOCIATED' if results['associated'] else 'NOT ASSOCIATED'}")
     else:
-        print(f"P(Associated) = {results['confidence']:.1%}")
-        print(f"Decision: {'ASSOCIATED' if results['associated'] else 'NOT ASSOCIATED'}")
-    
+        print(f"I_Ω={results['I_omega']:.3g}  I_DL={results['I_dl']:.3g}  "
+              f"I_t={results['I_t']:.3g}")
+        print(f"log10 odds = {results['log_posterior_odds']:.2f}  "
+              f"(P={results['confidence']:.1%})  "
+              f"[prior_odds={prior_odds:g}, chance_rate={chance_rate:g}]")
+
+    # The probability is only meaningful once prior_odds and chance_rate are set
+    # for the specific hypothesis; flag the defaults so a bare 100% is not
+    # mistaken for calibrated evidence.
+    if prior_odds == 1.0 and chance_rate == 1e-4:
+        print("Note: using default prior_odds/chance_rate (tuned for an expected "
+              "GW-EM counterpart). For GW-GW pairs these are not calibrated -- set "
+              "--prior-odds and --chance-rate for your search before trusting P.")
+
     # Generate plots
     try:
         if transient_payload:

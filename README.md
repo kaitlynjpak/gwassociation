@@ -67,6 +67,12 @@ paths or event IDs — IDs are auto-resolved and cached. Compare two GW events:
 gwassociation odds S250727dc S250122c
 ```
 
+The reported probability depends on `--prior-odds` and `--chance-rate`, whose
+defaults (1.0 and 1e-4) suit an *expected* GW–EM counterpart and are **not**
+calibrated for GW–GW pairs — set them for your search, e.g.
+`--prior-odds 1e-4 --chance-rate 1` for a lensing hypothesis. The overlap terms
+(`I_Ω`, `I_DL`) are the prior-independent, data-driven quantities.
+
 Or score a GW event against a point-like EM counterpart:
 
 ```console
