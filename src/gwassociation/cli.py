@@ -21,11 +21,13 @@ def main():
 
 
 @main.command()
-@click.option("--gw-file", required=True,
+@click.argument("events", nargs=-1)
+@click.option("--gw-file", default=None,
               help="Primary GW skymap: a FITS file path OR an event ID (e.g. S250727dc, "
-                   "GW170817) auto-resolved from --skymap-dir/GraceDB/archive.")
+                   "GW170817). Alternative to the first positional argument.")
 @click.option("--secondary-skymap", default=None,
-              help="Optional secondary skymap (FITS path or event ID) for coincidence analysis.")
+              help="Secondary skymap (FITS path or event ID). Alternative to the second "
+                   "positional argument.")
 @click.option("--skymap-dir", "skymap_dirs", multiple=True, type=click.Path(file_okay=False),
               help="Local directory to look for sky maps in when resolving event IDs (repeatable).")
 @click.option("--ra", type=float, default=None, help="Transient RA [deg] (required without --secondary-skymap).")
@@ -42,13 +44,30 @@ def main():
 @click.option("--out", "outdir", type=click.Path(file_okay=False), default="out",
               help="Output directory for results.")
 @click.option("--verbose", is_flag=True, help="Verbose output.")
-def odds(gw_file, secondary_skymap, skymap_dirs, ra, dec, z, z_err, ttime,
+def odds(events, gw_file, secondary_skymap, skymap_dirs, ra, dec, z, z_err, ttime,
          secondary_time, gw_time, model, outdir, verbose):
-    """Run GW-EM association analysis"""
+    """Run GW-EM association analysis.
+
+    Give the primary GW event (and optional secondary event) as positional
+    EVENTS -- file paths or event IDs -- e.g. ``gwassociation odds S250727dc
+    S250122c`` -- or via --gw-file / --secondary-skymap.
+    """
 
     # Only import here to avoid issues if package not fully installed
     from gwassociation import Association
     from gwassociation.plots import plot_association_summary
+
+    # Positional events take precedence over the flag forms.
+    if len(events) > 2:
+        raise click.UsageError("Provide at most two events (primary and secondary).")
+    if len(events) >= 1:
+        gw_file = events[0]
+    if len(events) >= 2:
+        secondary_skymap = events[1]
+    if gw_file is None:
+        raise click.UsageError(
+            "Provide a primary GW event as a positional argument or via --gw-file."
+        )
 
     # Resolve event IDs to local sky maps (leaves existing file paths untouched).
     def _resolve(value):

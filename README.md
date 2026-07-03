@@ -60,24 +60,23 @@ The console script is a command group with two sub-commands.
 
 ### `gwassociation odds` — GW–EM association
 
+The primary event (and optional secondary event) are given positionally as file
+paths or event IDs — IDs are auto-resolved and cached. Compare two GW events:
+
 ```console
-gwassociation odds \
-  --gw-file fits_files/S190425z_bayestar.fits.gz,0 \
-  --ra 120.5 \
-  --dec -30.2 \
-  --z 0.05 \
-  --time 1234567890 \
-  --gw-time 1234567880 \
+gwassociation odds S250727dc S250122c
+```
+
+Or score a GW event against a point-like EM counterpart:
+
+```console
+gwassociation odds fits_files/S190425z_bayestar.fits.gz,0 \
+  --ra 120.5 --dec -30.2 --z 0.05 --time 1234567890 --gw-time 1234567880 \
   --out results
 ```
 
-`--gw-file` and `--secondary-skymap` accept a FITS path or an event ID (e.g.
-`S250727dc`, `GW170817`) that is auto-resolved and cached, so two GW events can
-be compared directly:
-
-```console
-gwassociation odds --gw-file S250727dc --secondary-skymap S250122c
-```
+(The `--gw-file` / `--secondary-skymap` flags still work as alternatives to the
+positional arguments.)
 
 ### `gwassociation screen` — GW–GW lensing-overlap screening
 
