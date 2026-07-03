@@ -159,13 +159,16 @@ def odds(events, gw_file, secondary_skymap, skymap_dirs, ra, dec, z, z_err, ttim
               f"(P={results['confidence']:.1%})  "
               f"[prior_odds={prior_odds:g}, chance_rate={chance_rate:g}]")
 
-    # The probability is only meaningful once prior_odds and chance_rate are set
-    # for the specific hypothesis; flag the defaults so a bare 100% is not
-    # mistaken for calibrated evidence.
-    if prior_odds == 1.0 and chance_rate == 1e-4:
-        print("Note: using default prior_odds/chance_rate (tuned for an expected "
-              "GW-EM counterpart). For GW-GW pairs these are not calibrated -- set "
-              "--prior-odds and --chance-rate for your search before trusting P.")
+    # For the GW-GW (secondary-skymap) path the default prior_odds/chance_rate
+    # are not calibrated, so a bare 100% would be misleading. In the GW-EM
+    # point-source case (a known counterpart) the defaults are appropriate, so
+    # no warning is shown there.
+    if secondary_skymap is not None and prior_odds == 1.0 and chance_rate == 1e-4:
+        print("Note: this is a GW-GW comparison using default prior_odds=1 and "
+              "chance_rate=1e-4, which are tuned for an expected GW-EM counterpart "
+              "and are NOT calibrated for GW-GW pairs. Set --prior-odds and "
+              "--chance-rate for your search before trusting P (e.g. --prior-odds "
+              "1e-4 --chance-rate 1 for a lensing hypothesis).")
 
     # Generate plots
     try:
