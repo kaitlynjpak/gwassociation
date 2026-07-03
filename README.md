@@ -110,8 +110,12 @@ This writes to `--out`:
 - `top_pairs.csv` — ranked top-N pairs with empirical p-values
 - `overlap_histogram.png` — distribution of overlaps (full + high-overlap tail)
 - `survival_function.png` — empirical survival function / p-value curve
-- `joint_<e1>_<e2>.png` — joint `P1·P2` sky map for the top pair(s)
-- `summary.json` — parameters, distribution stats, corrections, and rankings
+- `joint_<e1>_<e2>.png` — joint `P1·P2` sky map for the top pair(s), plus one
+  for the highest-overlap pair whose events are at least a day apart (the top
+  time-separated candidate, since the overall top pair is often a same-day
+  duplicate detection)
+- `summary.json` — parameters, distribution stats, corrections, rankings, and
+  the top time-separated pair (`top_distinct_day_pair`)
 
 `--min-days-apart 1` excludes same-day duplicate detections of a single
 trigger. The all-pairs step is the expensive one; re-rank or re-plot without

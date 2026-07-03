@@ -150,7 +150,24 @@ def run_screening(
     except Exception as exc:  # pragma: no cover - plotting is best-effort
         log(f"Warning: distribution plots failed: {exc}")
 
-    joint_areas = _plot_top_pairs(ranked, skymap_dir, out_dir, n_plot_pairs, log)
+    # Pairs to plot: the top n_plot_pairs from the ranking, plus the highest-
+    # overlap pair whose events are at least one day apart. The overall top pair
+    # is often a same-day duplicate detection of a single trigger; the top
+    # >=1-day pair is the genuine time-separated (lensing) candidate, so it is
+    # always plotted even when it is not in the leading n_plot_pairs.
+    plot_rows = list(ranked[:n_plot_pairs])
+    distinct = statistics.rank_pairs(overlaps, pvalues=pvalues, top_n=1, min_days_apart=1)
+    top_distinct = distinct[0] if distinct else None
+    if top_distinct and not any(
+        r["event1"] == top_distinct["event1"] and r["event2"] == top_distinct["event2"]
+        for r in plot_rows
+    ):
+        log(f"Also plotting top >=1-day-apart pair: "
+            f"{top_distinct['event1']} & {top_distinct['event2']} "
+            f"(O={top_distinct['overlap']:.2f}, {top_distinct['days_apart']} d)")
+        plot_rows.append(top_distinct)
+
+    joint_areas = _plot_pairs(plot_rows, skymap_dir, out_dir, log)
     figures.update(joint_areas["figures"])
 
     # --- Summary ---
@@ -170,6 +187,7 @@ def run_screening(
         "statistics": stats,
         "corrections": asdict(corrections),
         "top_pairs": ranked,
+        "top_distinct_day_pair": top_distinct,
         "joint_areas": joint_areas["areas"],
         "outputs": {
             "overlaps_json": overlaps_path if not reuse_overlaps else reuse_overlaps,
@@ -183,11 +201,11 @@ def run_screening(
     return summary
 
 
-def _plot_top_pairs(ranked, skymap_dir, out_dir, n_plot_pairs, log):
-    """Render joint sky-map plots for the top ``n_plot_pairs`` ranked pairs."""
+def _plot_pairs(rows, skymap_dir, out_dir, log):
+    """Render joint sky-map plots for an explicit list of pair rows."""
     figures = {}
     areas = {}
-    for row in ranked[:n_plot_pairs]:
+    for row in rows:
         e1, e2 = row["event1"], row["event2"]
         try:
             p1 = download_mod.find_skymap_file(e1, skymap_dir)
