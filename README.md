@@ -71,6 +71,14 @@ gwassociation odds \
   --out results
 ```
 
+`--gw-file` and `--secondary-skymap` accept a FITS path or an event ID (e.g.
+`S250727dc`, `GW170817`) that is auto-resolved and cached, so two GW events can
+be compared directly:
+
+```console
+gwassociation odds --gw-file S250727dc --secondary-skymap S250122c
+```
+
 ### `gwassociation screen` — GW–GW lensing-overlap screening
 
 Query GraceDB, download the best sky map per event, compute the overlap

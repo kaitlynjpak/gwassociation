@@ -21,10 +21,13 @@ def main():
 
 
 @main.command()
-@click.option("--gw-file", type=click.Path(exists=True, dir_okay=False), required=True,
-              help="Path to primary GW skymap file (FITS).")
-@click.option("--secondary-skymap", type=click.Path(exists=True, dir_okay=False), default=None,
-              help="Optional secondary skymap (e.g., EM localization) for coincidence analysis.")
+@click.option("--gw-file", required=True,
+              help="Primary GW skymap: a FITS file path OR an event ID (e.g. S250727dc, "
+                   "GW170817) auto-resolved from --skymap-dir/GraceDB/archive.")
+@click.option("--secondary-skymap", default=None,
+              help="Optional secondary skymap (FITS path or event ID) for coincidence analysis.")
+@click.option("--skymap-dir", "skymap_dirs", multiple=True, type=click.Path(file_okay=False),
+              help="Local directory to look for sky maps in when resolving event IDs (repeatable).")
 @click.option("--ra", type=float, default=None, help="Transient RA [deg] (required without --secondary-skymap).")
 @click.option("--dec", type=float, default=None, help="Transient Dec [deg] (required without --secondary-skymap).")
 @click.option("--z", type=float, default=None, help="Transient redshift.")
@@ -39,17 +42,30 @@ def main():
 @click.option("--out", "outdir", type=click.Path(file_okay=False), default="out",
               help="Output directory for results.")
 @click.option("--verbose", is_flag=True, help="Verbose output.")
-def odds(gw_file, secondary_skymap, ra, dec, z, z_err, ttime,
+def odds(gw_file, secondary_skymap, skymap_dirs, ra, dec, z, z_err, ttime,
          secondary_time, gw_time, model, outdir, verbose):
     """Run GW-EM association analysis"""
-    
+
     # Only import here to avoid issues if package not fully installed
     from gwassociation import Association
     from gwassociation.plots import plot_association_summary
-    
+
+    # Resolve event IDs to local sky maps (leaves existing file paths untouched).
+    def _resolve(value):
+        if value is None or pathlib.Path(value).is_file():
+            return value
+        from gwassociation.screening.resolve import resolve_skymap
+        try:
+            return resolve_skymap(value, search_dirs=skymap_dirs, log=click.echo)
+        except FileNotFoundError as exc:
+            raise click.UsageError(str(exc))
+
+    gw_file = _resolve(gw_file)
+    secondary_skymap = _resolve(secondary_skymap)
+
     out = pathlib.Path(outdir)
     out.mkdir(parents=True, exist_ok=True)
-    
+
     # Validate inputs
     if secondary_skymap is None:
         missing = [name for name, value in (("RA", ra), ("Dec", dec), ("time", ttime)) if value is None]
